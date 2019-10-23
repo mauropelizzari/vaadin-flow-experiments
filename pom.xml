@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.9.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>demo</name>
+	<packaging>war</packaging>
+	<description>Demo project for Spring Boot</description>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<vaadin.version>13.0.13</vaadin.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-bom</artifactId>
+				<version>${vaadin.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+	<profile>
+		<id>production</id>
+		<activation>
+			<property>
+				<name>vaadin.productionMode</name>
+			</property>
+		</activation>
+
+		<!-- (1): Make the package run in production mode when deployed as .war,
+                  without the need of setting extra properties on the server -->
+		<dependencies>
+			<dependency>
+				<groupId>com.vaadin</groupId>
+				<artifactId>flow-server-production-mode</artifactId>
+			</dependency>
+		</dependencies>
+
+		<build>
+			<plugins>
+				<!-- (2): Run vaadin-maven-plugin to transpile and optimize frontend code -->
+				<plugin>
+					<groupId>com.vaadin</groupId>
+					<artifactId>vaadin-maven-plugin</artifactId>
+					<version>${vaadin.version}</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>copy-production-files</goal>
+								<goal>package-for-production</goal>
+							</goals>
+							<configuration>
+								<!-- Split app into fragments in order to make login-view smaller.
+                                     This way is still very manual, because flow does not merge
+                                     elements that are only used in one fragment into that fragment.
+                                 -->
+								<bundle>true</bundle>
+								<transpileOutputDirectory>${project.build.directory}/classes/static</transpileOutputDirectory>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- (3): Exclude the unprocessed frontend sources from the .war file -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<configuration>
+						<warSourceExcludes>frontend/**</warSourceExcludes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<configuration>
+						<jvmArguments>-Dvaadin.productionMode</jvmArguments>
+					</configuration>
+				</plugin>
+			</plugins>
+		</build>
+	</profile>
+	</profiles>
+</project>
