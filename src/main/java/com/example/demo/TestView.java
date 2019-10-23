@@ -34,7 +34,7 @@ public class TestView extends VerticalLayout {
     }
 
     private void initGui() {
-        personGrid = new TestGrid(10);
+        personGrid = new Grid(10);
 
         SerializableFunction<TestPojo,?> rendererFn = (tp) -> {
             Div div = new Div();
